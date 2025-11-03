@@ -4,19 +4,17 @@ from scipy.io.wavfile import write
 from pynput import keyboard
 
 def record_while_holding_r(sample_rate=16000):
+    print("🎯 Hold the 'R' key to start recording...")
+
     frames = []
     recording = False
     finished = False
-
-    def audio_callback(indata, frames_count, time, status):
-        if recording:
-            frames.append(indata.copy())
 
     def on_press(key):
         nonlocal recording
         try:
             if key.char == 'r' and not recording:
-                print("🔴 Recording... (hold R)")
+                print("🔴 Recording...")
                 recording = True
         except AttributeError:
             pass
@@ -32,22 +30,22 @@ def record_while_holding_r(sample_rate=16000):
         except AttributeError:
             pass
 
-    # Start listener
     listener = keyboard.Listener(on_press=on_press, on_release=on_release)
     listener.start()
 
-    # Start non-blocking input stream
-    with sd.InputStream(samplerate=sample_rate, channels=1, callback=audio_callback, dtype='int16'):
-        while not finished:
-            sd.sleep(100)  # wait briefly
+    # loop: record frames until finished becomes True
+    while not finished:
+        if recording:
+            data = sd.rec(1024, samplerate=sample_rate, channels=1, dtype='int16')
+            sd.wait()
+            frames.append(data)
 
     if frames:
         audio = np.concatenate(frames, axis=0)
         write("output.wav", sample_rate, audio)
         print("✅ Saved recording as output.wav")
     else:
-        print("⚠️ No audio was recorded.")
+        print("⚠️ No audio recorded.")
 
 if __name__ == "__main__":
-
     record_while_holding_r()

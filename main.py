@@ -1,6 +1,6 @@
 import requests
 import whisper_stt as stt
-import pytts
+import edgetts
 
 def ask_ollama(prompt):
     url = "http://localhost:11434/api/generate"
@@ -9,7 +9,6 @@ def ask_ollama(prompt):
         "prompt": prompt,
         "stream": False
     }
-
     try:
         response = requests.post(url, json=payload)
         response.raise_for_status()
@@ -26,10 +25,10 @@ try:
             while True:
                 user_input = "Pretext: My name is Arjun and your name is Jarvis. answer in short. Message: " + stt.record_and_transcribe()
                 if user_input.lower() in ["exit", "quit"]:
-                    end()
+                    break
                 answer = ask_ollama(user_input)
-                print("LLaMA:", answer)
-                pytts.talk(answer)
+                print("Jarvis:", answer)
+                edgetts.talk(answer)
 
 except KeyboardInterrupt:
     end()
